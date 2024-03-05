@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-image: url('/imgs/linuxwp1.jpeg');
+            background-color: #000;
+            height: 100vh;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #terminal {
+            width: 100%;
+            max-width: 800px;
+            height: 500px;
+            overflow: hidden;
+            border-radius: 6px;
+            border: 2px solid #00ff00;
+            margin: 20px;
+            cursor: text;
+            background-color: #1d1d1d;
+            color: #00FF00;
+            display: flex;
+            flex-direction: column;
+            padding: 8px;
+            overflow-y: auto;
+        }
+
+        input {
+            border: none;
+            background-color: unset;
+            color: #00FF00;
+            width: calc(100% - 16px);
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+            caret-color: #00FF00;
+            outline: none;
+        }
+
+        .type {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            color: #45f9f9;
+        }
+
+        .command {
+            color: #D79922;
+        }
+
+        .success {
+            color: #00FF00;
+        }
+
+        .error {
+            color: #FF0000;
+        }
+
+        .type2 {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            color: #00FF00;
+        }
+
+    </style>
+    <title>Micah Crandell</title>
+</head>
+
+<body>
+    
+    <div id="terminal"></div>
+
+    <script>
+        const terminal = document.getElementById("terminal");
+        let currentDirectory = "root";
+
+        function newLine() {
+            const promptText = `m1c@samsungfridge:${currentDirectory}/$`;
+            const div = document.createElement("div");
+            div.classList.add("type");
+            div.textContent = promptText;
+            terminal.appendChild(div);
+
+            const input = document.createElement("input");
+            terminal.appendChild(input);
+            input.focus();
+
+            const handleKeyPress = async function (event) {
+                if (event.key === "Enter") {
+                    document.removeEventListener("keypress", handleKeyPress);
+                    terminal.removeChild(div);
+                    terminal.removeChild(input);
+                    await delay(150);
+                    getInputValue(input.value.trim().toLowerCase());
+                    await delay(150);
+                    newLine();
+                }
+            };
+
+            // Prevent default behavior when clicking outside the input
+            document.addEventListener("mousedown", function (event) {
+                if (!input.contains(event.target)) {
+                    event.preventDefault();
+                }
+            });
+
+            document.addEventListener("keypress", handleKeyPress);
+        }
+
+        function getInputValue(value) {
+            switch (value) {
+                case "help":
+                    trueValue("help");
+                    createCode("cd [site]", "Navigate to another site");
+                    createCode("cd ..", "Navigate to the parent directory");
+                    createCode("ls", "List potential sites or files");
+                    createCode("cat [file]", "Read a file");
+                    createCode("pwd", "Display the client's name");
+                    createCode("whoami", "Display basic client information");
+                    createCode("clear", "Clear the terminal");
+                    break;
+                case "cd sites":
+                    trueValue("cd sites");
+                    currentDirectory = "root/sites";
+                    break;
+                case "cd files":
+                    trueValue("cd files");
+                    currentDirectory = "root/files";
+                    break;
+                case "cd ..":
+                    trueValue("cd ..");
+                    navigateToParentDirectory();
+                    break;
+                case "ls":
+                    trueValue("ls");
+                    listContents(currentDirectory);
+                    break;
+                case "cat file":
+                    trueValue("cat");
+                    createText("This is a fake file content.");
+                    break;
+                case "pwd":
+                    trueValue("pwd");
+                    createText("Micah Crandell");
+                    break;
+                case "whoami":
+                    trueValue("whoami");
+                    createText("Micah Crandell, Developer");
+                    break;
+                case "clear":
+                    terminal.innerHTML = "";
+                    break;
+                default:
+                    falseValue(value);
+                    createText(`Command not recognized: ${value}`);
+            }
+        }
+
+        function navigateToParentDirectory() {
+            // Add logic to navigate to the parent directory
+            // For simplicity, assuming there's a "root" directory as the top-level directory
+            if (currentDirectory !== "root") {
+                const parts = currentDirectory.split("/");
+                parts.pop();
+                currentDirectory = parts.join("/");
+            }
+        }
+
+        function listContents(directory) {
+            switch (directory) {
+                case "root":
+                    createText("sites/  files/");
+                    break;
+                case "root/sites":
+                    createText("micah1crandell.github  micah.com");
+                    break;
+                case "root/files":
+                    createText("about.txt  images/");
+                    break;
+                default:
+                    createText("Directory not found");
+            }
+        }
+
+        function trueValue(value) {
+            const div = document.createElement("div");
+            div.classList.add("type2");
+            const message = document.createElement("h2");
+            message.classList.add("success");
+            message.textContent = value !== undefined ? value : "System";
+            div.appendChild(message);
+            terminal.appendChild(div);
+        }
+
+        function falseValue(value) {
+            const div = document.createElement("div");
+            div.classList.add("type2");
+            const message = document.createElement("h2");
+            message.classList.add("error");
+            message.textContent = value !== undefined ? value : "System";
+            div.appendChild(message);
+            terminal.appendChild(div);
+        }
+
+        function createText(text) {
+            const p = document.createElement("p");
+            p.textContent = text;
+            terminal.appendChild(p);
+        }
+
+        function createCode(code, text) {
+            const p = document.createElement("p");
+            p.classList.add("code");
+            p.innerHTML = `<span class="command">${code}</span> <br/><span class='text'> ${text !== undefined ? text : ""} </span>`;
+            terminal.appendChild(p);
+        }
+
+        function delay(ms) {
+            return new Promise(res => setTimeout(res, ms));
+        }
+
+        async function openTerminal() {
+            createText("Welcome...");
+            await delay(1700);
+            createText("Your code, your world.");
+            await delay(2000);
+            createCode("help", "list available commands");
+            await delay(1500);
+            newLine();
+        }
+
+        openTerminal();
+    </script>
+</body>
+
+</html>
